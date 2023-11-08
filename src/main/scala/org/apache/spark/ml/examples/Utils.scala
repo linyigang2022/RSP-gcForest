@@ -1,0 +1,198 @@
+/*
+ * Copyright 2017 Authors NJU PASA BigData Laboratory. Qiu Hu. huqiu00#163.com
+ */
+
+package org.apache.spark.ml.examples
+
+import scopt.OptionParser
+
+/**
+ * Utils for Setting Program Runtime Parameters.
+ */
+object Utils {
+  case class TrainParams(
+                          //              trainFile: String = "./data/uci_adult/adult.data",
+                          //              testFile: String = "./data/uci_adult/adult_1000.test",
+                          //              featuresFile: String = "./data/uci_adult/features",
+                          //                                                    trainFile: String = "C:/data/uci_adult/adult.data",
+                          //                                                    testFile: String = "C:/data/uci_adult/adult.test",
+                          //                                                    featuresFile: String = "C:/data/uci_adult/features",
+                          //                          trainFile: String = "C:/data/watch_acc/watch_acc.data",
+                          //                          testFile: String = "C:/data/watch_acc/watch_acc.test",
+                          //                          featuresFile: String = "C:/data/watch_acc/features",
+                          model: String = "./models/uci_adult",
+                          trainFile: String = "C:/data/covertype/covtype.data",
+                          testFile: String = "C:/data/covertype/covtypeTest.test",
+                          featuresFile: String = "C:/data/covertype/features",
+                          //                          trainFile: String = "C:/data/covertype/covtypeTrain.data",
+                          //                          testFile: String = "C:/data/covertype/covtypeTest.data",
+                          //                          featuresFile: String = "C:/data/covertype/features61",
+                          //                          model: String = "./models/uci_adult",
+                          checkpointDir: String = "./checkpoint",
+                          classNum: Int = 7,
+                          multiScanWindow: Array[Int] = Array(),
+                          rfNum: Int = 8,
+                          crfNum: Int = 0,
+                          scanForestTreeNum: Int = 2,
+                          //              cascadeForestTreeNum: Int = 500,
+                          cascadeForestTreeNum: Int = 2,
+                          scanMinInsPerNode: Int = 2,
+                          cascadeMinInsPerNode: Int = 2,
+                          featureSubsetStrategy: String = "sqrt",
+                          //                          crf_featureSubsetStrategy: String = "log2",
+                          crf_featureSubsetStrategy: String = "sqrt",
+                          maxBins: Int = 32,
+                          maxDepth: Int = 30,
+                          minInfoGain: Double = 1e-6,
+                          maxIteration: Int = 4,
+                          maxMemoryInMB: Int = 2048,
+                          numFolds: Int = 3,
+                          earlyStoppingRounds: Int = 4,
+                          earlyStopByTest: Boolean = true,
+                          dataStyle: String = "Seq",
+                          dataSize: Array[Int] = Array(113),
+                          seed: Long = 123,
+                          cacheNodeId: Boolean = true,
+                          parallelism: Int = 8,
+                          debugLevel: String = "INFO",
+                          winCol: String = "windows",
+                          scanCol: String = "scan_id",
+                          forestIdCol: String = "forestNum",
+                          instanceCol: String = "instance",
+                          rawPredictionCol: String = "rawPrediction",
+                          Col: String = "probability",
+                          predictionCol: String = "prediction",
+                          featuresCol: String = "features",
+                          labelCol: String = "label",
+                          idebug: Boolean = false,
+                          //                          dataset: String = "uci_adult",
+                          dataset: String = "covertype",
+                          //                          dataset: String = "watch_acc",
+                          subRFNum: Int = 5,
+                          lambda: Double = 0.7,
+                          //                          newFeatures: String = "C:/data/newFeatures/newFeaturesAdult"
+                          newFeatures: String = "C:/data/newFeatures/newFeaturesCovertype",
+                          //                          newFeatures: String = "C:/data/newFeatures/newFeaturesWatchAcc"
+                          //                          newFeatures: String = "C:/data/newFeatures/newFeaturesSUSY"
+                          //                          newFeatures: String = "C:/data/newFeatures/newFeaturesHIGGS"
+                          g: Int = 15,
+                          rspBlockNum: Int = 60,
+                          isProvided: Boolean = false
+                        )
+
+  val trainParser = new OptionParser[TrainParams]("GCForest On Spark - UCI ADULT Example") {
+    head("Train Multi-grain Scan Cascade Forest for UCI ADULT")
+    opt[String]("train")
+      //      .text("where you put your training files, default: ./data/uci_adult/sample_adult.data")
+      .text("where you put your training files, default: ./data/uci_adult/sample_adult.data")
+      .action((x, c) => c.copy(trainFile = x))
+    opt[String]("test")
+      .text("where you put your testing files, default: ./data/uci_adult/sample_adult.test")
+      .action((x, c) => c.copy(testFile = x))
+    opt[String]("features")
+      .text("where you put your features files, default: ./data/uci_adult/features")
+      .action((x, c) => c.copy(featuresFile = x))
+    opt[String]("model")
+      .text("where you put your trained model, default: ./models/uci_adult")
+      .action((x, c) => c.copy(model = x))
+    opt[String]("checkpointDir")
+      .text("where you put your checkpoint, default: ./checkpoint")
+      .action((x, c) => c.copy(checkpointDir = x))
+    opt[Int]("classNum")
+      .text("number of Classes, default: 2")
+      .action((x, c) => c.copy(classNum = x))
+    opt[String]("msWin")
+      .text("Multi-grain Scan Window, an Array contains length(Seq) or width and height(Img), default: (), format: x,y")
+      .action((x, c) => c.copy(multiScanWindow = x.split(",").map(num => num.toInt).toSeq.toArray))
+    opt[Int]("rfNum")
+      .text("number of rf, default: 4")
+      .action((x, c) => c.copy(rfNum = x))
+    opt[Int]("crfNum")
+      .text("number of crf, default: 4")
+      .action((x, c) => c.copy(crfNum = x))
+    opt[Int]("scanTreeNum")
+      .text("scanning Forest tree Number, default: 2")
+      .action((x, c) => c.copy(scanForestTreeNum = x))
+    opt[Int]("casTreeNum")
+      .text("cascade Forest tree Number, default: 500")
+      .action((x, c) => c.copy(cascadeForestTreeNum = x))
+    opt[Int]("scanMinInsPerNode")
+      .text("scaning Forest Minimum Instances per Node, default: 2")
+      .action((x, c) => c.copy(scanMinInsPerNode = x))
+    opt[Int]("casMinInsPerNode")
+      .text("cascade Forest Minimum Instances per Node, default: 2")
+      .action((x, c) => c.copy(cascadeMinInsPerNode = x))
+    opt[String]("featureSubsetStrategy")
+      .text("featureSubsetStrategy for RF")
+      .action((x, c) => c.copy(featureSubsetStrategy = x))
+    opt[String]("crf_featureSubsetStrategy")
+      .text("featureSubsetStrategy CRF")
+      .action((x, c) => c.copy(crf_featureSubsetStrategy = x))
+    opt[Int]('b', "maxBins")
+      .text("random Forest max Bins to split continuous features, default: 32")
+      .action((x, c) => c.copy(maxBins = x))
+    opt[Int]('d', "maxDepth")
+      .text("random Forest max Depth, default: 30")
+      .action((x, c) => c.copy(maxDepth = x))
+    opt[Double]('g', "minInfoGain")
+      .text("random Forest minInfoGain, default: 1e-6")
+      .action((x, c) => c.copy(minInfoGain = x))
+    opt[Int]('i', "maxIteration")
+      .text("max Iteration to grow cascade Forests, default: 10")
+      .action((x, c) => c.copy(maxIteration = x))
+    opt[Int]('m', "maxMemoryInMB")
+      .text("max memory to histogram aggregates, default: 256")
+      .action((x, c) => c.copy(maxMemoryInMB = x))
+    opt[Int]("numFolds")
+      .text("number of Cross Validation Folds to generator class vectors, default: 3")
+      .action((x, c) => c.copy(numFolds = x))
+    opt[Int]("esRound")
+      .text("number of round to early stopping, default: 4")
+      .action((x, c) => c.copy(earlyStoppingRounds = x))
+    opt[Int]("esbTest")
+      .text("whether conduct early stop by test metric, default: 1 (true), 0 represents false")
+      .action((x, c) => c.copy(earlyStopByTest = if (x == 1) true else false))
+    opt[String]("dStyle")
+      .text("data Style to classify, Image or Seq, default: Seq")
+      .action((x, c) => c.copy(dataStyle = x))
+    opt[String]("dSize")
+      .text("data Size to classify, an Array contains features dimension(Seq) " +
+        "or width and height(Img), default: (113,), format: x,y")
+      .action((x, c) => c.copy(dataSize = x.split(",").map(num => num.toInt).toSeq.toArray))
+    opt[Long]("seed")
+      .text("random seed, default: 123L")
+      .action((x, c) => c.copy(seed = x))
+    opt[String]("cacheNodeId")
+      .text("cache node id or not, default: true")
+      .action((x, c) => c.copy(cacheNodeId = x == "y"))
+    opt[Int]('p', "parallelism")
+      .text("parallelism you want to set, default: 0")
+      .action((x, c) => c.copy(parallelism = x))
+    opt[String]("debugLevel")
+      .text("debug level you want to set, default: ERROR")
+      .action((x, c) => c.copy(debugLevel = x))
+    opt[String]("idebug")
+      .text("if print debug infomation, default: n (y or n)")
+      .action((x, c) => c.copy(idebug = x == "y"))
+    opt[String]("dataset")
+      .text("the dataset you want to use, uci_adult, covertype, watch_acc, susy, higgs, default: uci_adult")
+      .action((x, c) => c.copy(dataset = x))
+    opt[Int]("subRFNum")
+      .text("num of sub random forest, default: 2")
+      .action((x, c) => c.copy(subRFNum = x))
+    opt[Double]("lambda")
+      .text("sample level of random forest, default: 0.7")
+      .action((x, c) => c.copy(lambda = x))
+    opt[String]("newFeatures")
+      .text("where you put your features files, default: ./data/uci_adult/features")
+      .action((x, c) => c.copy(newFeatures = x))
+    opt[Int]("g")
+      .text("num of random partitions, default: 10")
+      .action((x, c) => c.copy(g = x))
+    opt[Int]("rspBlockNum")
+      .text("num of rsp block Num, default: 50")
+      .action((x, c) => c.copy(rspBlockNum = x))
+    // other parameters do not need to change
+
+  }
+}
