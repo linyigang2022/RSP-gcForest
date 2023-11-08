@@ -6,24 +6,24 @@ Configure Hadoop and Spark, requiring Spark version 2.4.0. For specific  executi
 
 ```sh
 spark-submit --master yarn \
-  --class org.apache.spark.ml.examples.BLBGCForestSequence \
-  --executor-cores 2 \
-  --num-executors 16 \
-  --driver-memory 4G \
-  --executor-memory 16G \
-  --conf spark.dynamicAllocation.minExecutors=16 \
-  --conf spark.dynamicAllocation.maxExecutors=16 \
+  --class org.apache.spark.ml.examples.RSPGCForestSequence \
+  --executor-cores 5 \
+  --num-executors 4 \
+  --driver-memory 30G \
+  --executor-memory 32G \
+  --conf spark.dynamicAllocation.minExecutors=4 \
+  --conf spark.dynamicAllocation.maxExecutors=4 \
   gcforest-1.0-SNAPSHOT-jar-with-dependencies.jar \
-  --dataset watch_acc \
-  --train linyigang/data/watch_acc/watch_acc.data \
-  --features linyigang/data/watch_acc/features \
-  --classNum 18 \
-  --casTreeNum 5 \
-  --rfNum 1 \
-  --crfNum 1 \
-  --subRFNum 3 \
-  --maxIteration 2 \
-  --lambda 0.6
+  --dataset [dataset type: covertype, watch_acc, susy or higgs] \
+  --train [your train dataset path] \
+  --features [features file path, example: see the "/features"] \
+  --casTreeNum 20 \
+  --rfNum 4 \
+  --crfNum 4 \
+  --subRFNum 5 \
+  --maxIteration 3 \
+  --rspBlockNum 240 \
+  --g 20
 ```
 
 
